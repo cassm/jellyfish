@@ -65,9 +65,6 @@ def faderTest():
       pixels[ii] = (brightness_value, brightness_value, brightness_value)
 
 def main():
-    global patternNumber
-    global udpInitialised
-
     # initialise DMX slave listener
     ola_client = OlaClient.OlaClient()
     sock = ola_client.GetSocket()
@@ -103,7 +100,6 @@ def main():
 
 
     # send pixels
-
     print('\tsending pixels forever (control-c to exit)...\n')
 
     while True:
@@ -115,9 +111,9 @@ def main():
         print(brightness_value)
         if mode_id == 0:
             faderTest()
-        else if mode_id == 1:
+        elif mode_id == 1:
             rainbow_waves.set_pixels(pixels, time.time() - start_time, 29, -13, 19)
-        else if mode_id == 2:
+        elif mode_id == 2:
             wobbler.set_pixels(pixels, time.time() - start_time)
 
         client.put_pixels(pixels, channel=0)
