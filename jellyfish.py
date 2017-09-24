@@ -38,14 +38,16 @@ import threading
 ##############################
 
 import colours
+import pattern_utils
 import rainbow_waves
+import spiral
 import wobbler
 
 ##############################
 
-n_pixels = 2
+n_pixels_per_string = 50
 n_strings = 8
-pixels_per_string = int(n_pixels/n_strings)
+n_pixels = n_strings * n_pixels_per_string
 
 fps = 60
 
@@ -65,6 +67,8 @@ def faderTest():
       pixels[ii] = (brightness_value, brightness_value, brightness_value)
 
 def main():
+    global pixels
+
     # initialise DMX slave listener
     ola_client = OlaClient.OlaClient()
     sock = ola_client.GetSocket()
@@ -72,7 +76,7 @@ def main():
 
     # handle command line
     parser = optparse.OptionParser()
-    parser.add_option('-l', '--layout', dest='layout', default='disc.json',
+    parser.add_option('-l', '--layout', dest='layout', default='layouts/disc-' + str(n_strings) + '.json',
                       action='store', type='string',
                       help='layout file')
     parser.add_option('-s', '--server', dest='server', default='127.0.0.1:7890',
@@ -108,13 +112,14 @@ def main():
         if readable:
             ola_client.SocketReady()
 
-        print(brightness_value)
         if mode_id == 0:
-            faderTest()
+            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, time.time() - start_time, colours.neonRose)
         elif mode_id == 1:
             rainbow_waves.set_pixels(pixels, time.time() - start_time, 29, -13, 19)
         elif mode_id == 2:
             wobbler.set_pixels(pixels, time.time() - start_time)
+        else:
+            faderTest()
 
         client.put_pixels(pixels, channel=0)
         time.sleep(1 / fps)
