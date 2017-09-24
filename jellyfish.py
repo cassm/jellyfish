@@ -51,23 +51,22 @@ n_pixels = n_strings * n_pixels_per_string
 
 fps = 60
 
-start_time = time.time()
+last_measured_time = time.time()
+effective_time = time.time()
 
 pixels = [(0.0, 0.0, 0.0) for i in range(n_pixels)]
 
-brightness_value = 0
+speed_val = 0.5
 mode_id = 0
 
 def process_dmx_frame(data):
-  global brightness_value
-  brightness_value = data[0]
-
-def faderTest():
-  for ii in range(n_pixels):
-      pixels[ii] = (brightness_value, brightness_value, brightness_value)
+  global speed_val
+  speed_val = 256.0/data[0]
 
 def main():
     global pixels
+    global last_measured_time
+    global effective_time
 
     # initialise DMX slave listener
     ola_client = OlaClient.OlaClient()
@@ -112,14 +111,16 @@ def main():
         if readable:
             ola_client.SocketReady()
 
+        # update effective time in line with speed value
+        effective_time += (time.time() - last_measured_time) * speed_val
+        last_measured_time = time.time()
+
         if mode_id == 0:
-            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, time.time() - start_time, colours.neonRose)
+            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, effective_time, colours.neonRose)
         elif mode_id == 1:
-            rainbow_waves.set_pixels(pixels, time.time() - start_time, 29, -13, 19)
+            rainbow_waves.set_pixels(pixels, effective_time, 29, -13, 19)
         elif mode_id == 2:
-            wobbler.set_pixels(pixels, time.time() - start_time)
-        else:
-            faderTest()
+            wobbler.set_pixels(pixels, effective_time)
 
         client.put_pixels(pixels, channel=0)
         time.sleep(1 / fps)
