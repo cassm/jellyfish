@@ -1,4 +1,17 @@
-def set_pixels(pixels, elapsed_time, speed_r, speed_g, speed_b):
+from __future__ import division
+import sys
+import os
+cwd = os.getcwd()
+
+sys.path.insert(0, cwd+"/openpixelcontrol/python/")
+
+import math
+import opc
+import color_utils
+
+import pattern_utils
+
+def set_pixels(pixel_buff, elapsed_time, speed_r, speed_g, speed_b):
     # how many sine wave cycles are squeezed into our n_pixels
     # 24 happens to create nice diagonal stripes on the wall layout
     freq_r = 24
@@ -6,7 +19,7 @@ def set_pixels(pixels, elapsed_time, speed_r, speed_g, speed_b):
     freq_b = 24
 
     t = elapsed_time * 5
-    n_pixels = len(pixels)
+    n_pixels = len(pixel_buff)
 
     for ii in range(n_pixels):
         pct = (ii / n_pixels)
@@ -19,4 +32,4 @@ def set_pixels(pixels, elapsed_time, speed_r, speed_g, speed_b):
         r = blackstripes * color_utils.remap(math.cos((t/speed_r + pct*freq_r)*math.pi*2), -1, 1, 0, 256)
         g = blackstripes * color_utils.remap(math.cos((t/speed_g + pct*freq_g)*math.pi*2), -1, 1, 0, 256)
         b = blackstripes * color_utils.remap(math.cos((t/speed_b + pct*freq_b)*math.pi*2), -1, 1, 0, 256)
-        pixels[ii] = fadeDownTo(pixels[ii], (r, g, b), 0.5)
+        pixel_buff[ii] = pattern_utils.fadeDownTo(pixel_buff[ii], (r, g, b), 0.5)
