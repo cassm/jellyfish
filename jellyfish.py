@@ -58,15 +58,19 @@ pixels = [(0.0, 0.0, 0.0) for i in range(n_pixels)]
 
 speed_val = 1
 mode_id = 0
+last_mode_id = 0
 
 def process_dmx_frame(data):
   global speed_val
+  global mode_id
   speed_val = data[0]/64.0
+  mode_id = data[1]
 
 def main():
     global pixels
     global last_measured_time
     global effective_time
+    global last_mode_id
 
     # initialise DMX slave listener
     ola_client = OlaClient.OlaClient()
@@ -106,6 +110,9 @@ def main():
     print('\tsending pixels forever (control-c to exit)...\n')
 
     while True:
+        if last_mode_id != mode_id:
+            print "Mode switch {} -> {}".format(last_mode_id, mode_id)
+            last_mode_id = mode_id
         # check for new dmx frames
         readable, writable, exceptional = select.select([sock], [], [], 0)
         if readable:
@@ -120,7 +127,7 @@ def main():
         elif mode_id == 1:
             rainbow_waves.set_pixels(pixels, effective_time, 29, -13, 19)
         elif mode_id == 2:
-            wobbler.set_pixels(pixels, effective_time)
+            wobbler.set_pixels(pixels, n_pixels_per_string, effective_time)
 
         client.put_pixels(pixels, channel=0)
         time.sleep(1 / fps)
