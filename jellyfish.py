@@ -56,12 +56,12 @@ effective_time = time.time()
 
 pixels = [(0.0, 0.0, 0.0) for i in range(n_pixels)]
 
-speed_val = 0.5
+speed_val = 1
 mode_id = 0
 
 def process_dmx_frame(data):
   global speed_val
-  speed_val = 256.0/data[0]
+  speed_val = data[0]/64.0
 
 def main():
     global pixels
