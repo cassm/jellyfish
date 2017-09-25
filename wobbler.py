@@ -15,9 +15,11 @@ pixel_order = 0
 last_pixel_order_switch = 0
 min_pixel_order_switch_interval = 5
 
-def set_pixels(pixels, pixels_per_string, elapsed_time):
+def set_pixels(pixels, pixels_per_string, elapsed_time, audio_level):
     global pixel_order
     global last_pixel_order_switch
+
+    audio_factor = audio_level + 0.5
 
     n_pixels = len(pixels)
     n_strings = int(n_pixels / pixels_per_string)
@@ -39,7 +41,7 @@ def set_pixels(pixels, pixels_per_string, elapsed_time):
         for pixel in range(pixels_per_string):
             pixCol = [0, 0, 0]
             for colour in range(3):
-                distance = bandLocation[colour] - pixel
+                distance = (bandLocation[colour] - pixel) * audio_factor
                 if distance < 0:
                     distance *= -1
 
