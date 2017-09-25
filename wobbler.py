@@ -15,7 +15,7 @@ pixel_order = 0
 last_pixel_order_switch = 0
 min_pixel_order_switch_interval = 5
 
-def set_pixels(pixels, pixels_per_string, elapsed_time, audio_level):
+def set_pixels(pixels, pixels_per_string, elapsed_time, audio_level, audio_respond):
     global pixel_order
     global last_pixel_order_switch
 
