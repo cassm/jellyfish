@@ -41,7 +41,8 @@ def set_pixels(pixel_buff, pixels_per_string, sparkle_chance, max_concurrent_spa
             sparkle_colour[sparkle_index] = palette.vals[palette_pixel_offset]
 
     for ii in range(len(pixel_buff)):
-        sparkle_intensity = min(pattern_utils.inverse_square(elapsed_time, sparkle_time[ii], 1.2), 1)
+        sparkle_intensity = min(pattern_utils.inverse_square(elapsed_time, sparkle_time[ii], 2.0), 1)
         pixel_value = tuple(channel * sparkle_intensity for channel in sparkle_colour[ii])
+        #pixel_value = tuple(255 * channel for channel in color_utils.gamma(pixel_value, 2.2))
 
         pixel_buff[ii] = pattern_utils.fadeDownTo(pixel_buff[ii], pixel_value, 0.5)
