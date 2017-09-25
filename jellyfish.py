@@ -80,9 +80,12 @@ def process_dmx_frame(data):
     global colour_mash
     global mode_cycle
 
-    speed_val = data[0]/64.0
+    if len(data) != 7:
+        return
+
+    speed_val = data[0]/32.0
     mode_id = data[1]
-    # audio_level = data[2] / 255.0
+    audio_level = data[2] / 255.0
     audio_respond = data[3]
     auto_colour = data[4]
     colour_mash = data[5]
@@ -134,7 +137,7 @@ def main():
     print('\tsending pixels forever (control-c to exit)...\n')
 
     while True:
-        audio_level = math.sin(effective_time*6) / 2 + 0.5
+        # audio_level = math.sin(effective_time*6) / 2 + 0.5
 
         frame_start = time.time()
 
@@ -143,8 +146,9 @@ def main():
             last_mode_id = mode_id
         # check for new dmx frames
         readable, writable, exceptional = select.select([sock], [], [], 0)
-        if readable:
+        while readable:
             ola_client.SocketReady()
+            readable, writable, exceptional = select.select([sock], [], [], 0)
 
         # update effective time in line with speed value
         effective_time += (time.time() - last_measured_time) * speed_val
