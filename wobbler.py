@@ -19,7 +19,10 @@ def set_pixels(pixels, pixels_per_string, elapsed_time, audio_level):
     global pixel_order
     global last_pixel_order_switch
 
-    audio_factor = audio_level + 0.5
+    audio_factor = 1.0
+
+    if audio_respond:
+        audio_factor = audio_level + 0.5
 
     n_pixels = len(pixels)
     n_strings = int(n_pixels / pixels_per_string)

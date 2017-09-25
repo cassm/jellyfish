@@ -63,15 +63,31 @@ effective_time = time.time()
 pixels = [(0.0, 0.0, 0.0) for i in range(n_pixels)]
 
 speed_val = 1
-mode_id = 0
+mode_id = 5
 last_mode_id = 0
-audio_level = 0
+audio_level = 0.5
+audio_respond = False
+auto_colour = False
+colour_mash = False
+mode_cycle = False
 
 def process_dmx_frame(data):
-  global speed_val
-  global mode_id
-  speed_val = data[0]/64.0
-  mode_id = data[1]
+    global speed_val
+    global mode_id
+    global audio_level
+    global audio_respond
+    global auto_colour
+    global colour_mash
+    global mode_cycle
+
+    speed_val = data[0]/64.0
+    mode_id = data[1]
+    # audio_level = data[2] / 255.0
+    audio_respond = data[3]
+    auto_colour = data[4]
+    colour_mash = data[5]
+    mode_cycle = data[6]
+
 
 def main():
     global pixels
@@ -118,7 +134,7 @@ def main():
     print('\tsending pixels forever (control-c to exit)...\n')
 
     while True:
-        audio_level = math.sin(effective_time*3) / 2 + 0.5
+        audio_level = math.sin(effective_time*6) / 2 + 0.5
 
         frame_start = time.time()
 
@@ -135,17 +151,22 @@ def main():
         last_measured_time = time.time()
 
         if mode_id == 0:
-            wash.set_pixels(pixels, n_pixels_per_string, effective_time, palettes.auto, audio_level)
+            wash.set_pixels(pixels, n_pixels_per_string, effective_time, palettes.auto, audio_level, audio_respond)
+
         elif mode_id == 1:
-            sparkle.set_pixels(pixels, n_pixels_per_string, 0.5, 5, effective_time, palettes.auto, audio_level)
+            sparkle.set_pixels(pixels, n_pixels_per_string, 0.5, 5, effective_time, palettes.auto, audio_level, audio_respond)
+
         elif mode_id == 2:
-            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, True, effective_time, palettes.auto, audio_level)
+            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, True, effective_time, palettes.auto, audio_level, audio_respond)
+
         elif mode_id == 3:
-            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, False, effective_time, palettes.auto, audio_level)
+            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, False, effective_time, palettes.auto, audio_level, audio_respond)
+
         elif mode_id == 4:
-            rainbow_waves.set_pixels(pixels, effective_time, 29, -13, 19, audio_level)
+            rainbow_waves.set_pixels(pixels, effective_time, 29, -13, 19, audio_level, audio_respond)
+
         elif mode_id == 5:
-            wobbler.set_pixels(pixels, n_pixels_per_string, effective_time, audio_level)
+            wobbler.set_pixels(pixels, n_pixels_per_string, effective_time, audio_level, audio_respond)
 
         client.put_pixels(pixels, channel=0)
 

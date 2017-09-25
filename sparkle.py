@@ -26,14 +26,15 @@ def init(n_pixels):
     sparkle_colour = list((0.0, 0.0, 0.0) for i in range(n_pixels))
     sparkle_time = list(0.0 for i in range(n_pixels))
 
-def set_pixels(pixel_buff, pixels_per_string, sparkle_chance, max_concurrent_sparkles, elapsed_time, palette, audio_level):
+def set_pixels(pixel_buff, pixels_per_string, sparkle_chance, max_concurrent_sparkles, elapsed_time, palette, audio_level, audio_respond):
     global sparkle_colour
     global sparkle_time
 
     if not initialised:
         return
 
-    max_concurrent_sparkles = int(max_concurrent_sparkles * audio_level * 2)
+    if audio_respond:
+        max_concurrent_sparkles = int(max_concurrent_sparkles * audio_level * 2)
 
     for ii in range(max_concurrent_sparkles+1):
         if random.random() < sparkle_chance:

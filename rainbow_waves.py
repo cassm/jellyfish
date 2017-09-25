@@ -11,7 +11,7 @@ import color_utils
 
 import pattern_utils
 
-def set_pixels(pixel_buff, elapsed_time, speed_r, speed_g, speed_b, audio_level):
+def set_pixels(pixel_buff, elapsed_time, speed_r, speed_g, speed_b, audio_level, audio_respond):
     # how many sine wave cycles are squeezed into our n_pixels
     # 24 happens to create nice diagonal stripes on the wall layout
     freq_r = 24
@@ -21,7 +21,10 @@ def set_pixels(pixel_buff, elapsed_time, speed_r, speed_g, speed_b, audio_level)
     t = elapsed_time * 5
     n_pixels = len(pixel_buff)
 
-    audio_factor = audio_level + 0.75
+    audio_factor = 1.0
+
+    if audio_respond:
+        audio_factor = audio_level + 0.75
 
     for ii in range(n_pixels):
         pct = (ii / n_pixels)
