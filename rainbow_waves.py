@@ -32,4 +32,5 @@ def set_pixels(pixel_buff, elapsed_time, speed_r, speed_g, speed_b):
         r = blackstripes * color_utils.remap(math.cos((t/speed_r + pct*freq_r)*math.pi*2), -1, 1, 0, 256)
         g = blackstripes * color_utils.remap(math.cos((t/speed_g + pct*freq_g)*math.pi*2), -1, 1, 0, 256)
         b = blackstripes * color_utils.remap(math.cos((t/speed_b + pct*freq_b)*math.pi*2), -1, 1, 0, 256)
-        pixel_buff[ii] = pattern_utils.fadeDownTo(pixel_buff[ii], (r, g, b), 0.5)
+        # pixel_buff[ii] = pattern_utils.fadeDownTo(pixel_buff[ii], (r, g, b), 0.5)
+        pixel_buff[ii] = (r, g, b)

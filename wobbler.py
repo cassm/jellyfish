@@ -46,4 +46,5 @@ def set_pixels(pixels, pixels_per_string, elapsed_time):
                 pixCol[colour] = (2 + max(band_radius, 0.0000001)/10)/distance
 
             r, g, b = color_utils.gamma(pixCol, 2.2)
-            pixels[string*pixels_per_string + pixel] = pattern_utils.fadeDownTo(pixels[string*pixels_per_string + pixel], (g*255, r*255, b*255), 0.5)
+            # pixels[string*pixels_per_string + pixel] = pattern_utils.fadeDownTo(pixels[string*pixels_per_string + pixel], (g*255, r*255, b*255), 0.5)
+            pixels[string*pixels_per_string + pixel] = (g*255, r*255, b*255)

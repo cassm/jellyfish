@@ -32,4 +32,5 @@ def set_pixels(pixel_buff, pixels_per_string, num_strings, waves_per_string, add
 
         pixel_value = tuple (channel * 255 for channel in color_utils.gamma(pixel_value, 2.2))
 
-        pixel_buff[ii] = pattern_utils.fadeDownTo(pixel_buff[ii], pixel_value, 0.5)
+        # pixel_buff[ii] = pattern_utils.fadeDownTo(pixel_buff[ii], pixel_value, 0.5)
+        pixel_buff[ii] = pixel_value

@@ -26,7 +26,7 @@ def init(n_pixels):
     sparkle_colour = list((0.0, 0.0, 0.0) for i in range(n_pixels))
     sparkle_time = list(0.0 for i in range(n_pixels))
 
-def set_pixels(pixel_buff, pixels_per_string, sparkle_chance, max_concurrent_sparkles, elapsed_time, palette):
+def set_pixels(pixel_buff, pixels_per_string, sparkle_chance, max_concurrent_sparkles, elapsed_time, palette, audio_level):
     global sparkle_colour
     global sparkle_time
 
@@ -45,4 +45,5 @@ def set_pixels(pixel_buff, pixels_per_string, sparkle_chance, max_concurrent_spa
         pixel_value = tuple(channel * sparkle_intensity for channel in sparkle_colour[ii])
         #pixel_value = tuple(255 * channel for channel in color_utils.gamma(pixel_value, 2.2))
 
-        pixel_buff[ii] = pattern_utils.fadeDownTo(pixel_buff[ii], pixel_value, 0.5)
+        pixel_buff[ii] = pixel_value
+        # pixel_buff[ii] = pattern_utils.fadeDownTo(pixel_buff[ii], pixel_value, 0.5)
