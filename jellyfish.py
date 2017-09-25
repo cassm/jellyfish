@@ -39,9 +39,12 @@ import threading
 
 import colours
 import pattern_utils
-import rainbow_waves
+
 import spiral
 import sparkle
+import wash
+
+import rainbow_waves
 import wobbler
 
 import palettes
@@ -129,12 +132,14 @@ def main():
         last_measured_time = time.time()
 
         if mode_id == 0:
-            sparkle.set_pixels(pixels, n_pixels_per_string, 0.5, 5, effective_time, palettes.auto)
+            wash.set_pixels(pixels, n_pixels_per_string, effective_time, palettes.auto)
         if mode_id == 1:
+            sparkle.set_pixels(pixels, n_pixels_per_string, 0.5, 5, effective_time, palettes.auto)
+        if mode_id == 2:
             spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, effective_time, palettes.auto)
-        elif mode_id == 2:
-            rainbow_waves.set_pixels(pixels, effective_time, 29, -13, 19)
         elif mode_id == 3:
+            rainbow_waves.set_pixels(pixels, effective_time, 29, -13, 19)
+        elif mode_id == 4:
             wobbler.set_pixels(pixels, n_pixels_per_string, effective_time)
 
         client.put_pixels(pixels, channel=0)
