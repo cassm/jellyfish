@@ -114,6 +114,8 @@ def main():
     print('\tsending pixels forever (control-c to exit)...\n')
 
     while True:
+        frame_start = time.time()
+
         if last_mode_id != mode_id:
             print "Mode switch {} -> {}".format(last_mode_id, mode_id)
             last_mode_id = mode_id
@@ -136,7 +138,12 @@ def main():
             wobbler.set_pixels(pixels, n_pixels_per_string, effective_time)
 
         client.put_pixels(pixels, channel=0)
-        time.sleep(1 / fps)
+
+        frame_duration = time.time() - frame_start
+        frame_delay = 1.0 / fps
+
+        if frame_delay > frame_duration:
+          time.sleep(frame_delay - frame_duration)
 
 if __name__ == "__main__":
     main()
