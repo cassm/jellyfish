@@ -41,12 +41,15 @@ import colours
 import pattern_utils
 import rainbow_waves
 import spiral
+import sparkle
 import wobbler
+
+import palettes
 
 ##############################
 
 n_pixels_per_string = 50
-n_strings = 8
+n_strings = 16
 n_pixels = n_strings * n_pixels_per_string
 
 fps = 60
@@ -105,6 +108,7 @@ def main():
         print('    WARNING: could not connect to %s' % options.server)
     print('')
 
+    sparkle.init(n_pixels)
 
     # send pixels
     print('\tsending pixels forever (control-c to exit)...\n')
@@ -123,10 +127,12 @@ def main():
         last_measured_time = time.time()
 
         if mode_id == 0:
-            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, effective_time, colours.neonRose)
-        elif mode_id == 1:
-            rainbow_waves.set_pixels(pixels, effective_time, 29, -13, 19)
+            sparkle.set_pixels(pixels, n_pixels_per_string, 0.5, 5, effective_time, palettes.auto)
+        if mode_id == 1:
+            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, effective_time, palettes.auto)
         elif mode_id == 2:
+            rainbow_waves.set_pixels(pixels, effective_time, 29, -13, 19)
+        elif mode_id == 3:
             wobbler.set_pixels(pixels, n_pixels_per_string, effective_time)
 
         client.put_pixels(pixels, channel=0)
