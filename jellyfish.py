@@ -49,7 +49,7 @@ import palettes
 ##############################
 
 n_pixels_per_string = 50
-n_strings = 16
+n_strings = 8
 n_pixels = n_strings * n_pixels_per_string
 
 fps = 60
