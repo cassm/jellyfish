@@ -12,7 +12,7 @@ import color_utils
 import pattern_utils
 import palette_utils
 
-def set_pixels(pixel_buff, pixels_per_string, num_strings, waves_per_string, elapsed_time, palette):
+def set_pixels(pixel_buff, pixels_per_string, num_strings, waves_per_string, add_spiral, elapsed_time, palette):
     for ii in range(len(pixel_buff)):
         pixel_index = float(ii) % pixels_per_string
         string_index = float(ii) / pixels_per_string
@@ -20,7 +20,11 @@ def set_pixels(pixel_buff, pixels_per_string, num_strings, waves_per_string, ela
         palette_pixel_offset = palette_utils.get_total_offset(elapsed_time, ii, pixels_per_string, palette.len)
 
         scaling_factor = math.pi*2 / pixels_per_string * waves_per_string
-        spiral_offset = (float(string_index) / num_strings) * math.pi*2
+
+        spiral_offset = 0
+
+        if add_spiral:
+            spiral_offset = (float(string_index) / num_strings) * math.pi*2
 
         brightness_level = (math.sin(-elapsed_time + pixel_index*scaling_factor + spiral_offset) / 2) + 0.5
 

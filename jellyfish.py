@@ -65,6 +65,7 @@ pixels = [(0.0, 0.0, 0.0) for i in range(n_pixels)]
 speed_val = 1
 mode_id = 0
 last_mode_id = 0
+audio_level = 0
 
 def process_dmx_frame(data):
   global speed_val
@@ -117,6 +118,8 @@ def main():
     print('\tsending pixels forever (control-c to exit)...\n')
 
     while True:
+        audio_level = math.sin(effective_time*3) / 2 + 0.5
+
         frame_start = time.time()
 
         if last_mode_id != mode_id:
@@ -132,15 +135,17 @@ def main():
         last_measured_time = time.time()
 
         if mode_id == 0:
-            wash.set_pixels(pixels, n_pixels_per_string, effective_time, palettes.auto)
-        if mode_id == 1:
-            sparkle.set_pixels(pixels, n_pixels_per_string, 0.5, 5, effective_time, palettes.auto)
-        if mode_id == 2:
-            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, effective_time, palettes.auto)
+            wash.set_pixels(pixels, n_pixels_per_string, effective_time, palettes.auto, audio_level)
+        elif mode_id == 1:
+            sparkle.set_pixels(pixels, n_pixels_per_string, 0.5, 5, effective_time, palettes.auto, audio_level)
+        elif mode_id == 2:
+            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, True, effective_time, palettes.auto, audio_level)
         elif mode_id == 3:
-            rainbow_waves.set_pixels(pixels, effective_time, 29, -13, 19)
+            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, False, effective_time, palettes.auto, audio_level)
         elif mode_id == 4:
-            wobbler.set_pixels(pixels, n_pixels_per_string, effective_time)
+            rainbow_waves.set_pixels(pixels, effective_time, 29, -13, 19, audio_level)
+        elif mode_id == 5:
+            wobbler.set_pixels(pixels, n_pixels_per_string, effective_time, audio_level)
 
         client.put_pixels(pixels, channel=0)
 
