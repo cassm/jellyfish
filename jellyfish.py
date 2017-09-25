@@ -7,6 +7,7 @@ cwd = os.getcwd()
 
 sys.path.insert(0, cwd+"/openpixelcontrol/python/")
 
+import serial
 import time
 import math
 import random
@@ -57,16 +58,18 @@ n_pixels = n_strings * n_pixels_per_string
 
 fps = 60
 
+serial_initialised = False
+
 last_measured_time = time.time()
 effective_time = time.time()
 
 pixels = [(0.0, 0.0, 0.0) for i in range(n_pixels)]
 
 speed_val = 1
-mode_id = 5
+mode_id = 0
 last_mode_id = 0
 audio_level = 0.5
-audio_respond = False
+audio_respond = True
 auto_colour = False
 colour_mash = False
 mode_cycle = False
@@ -94,6 +97,27 @@ def main():
     global last_measured_time
     global effective_time
     global last_mode_id
+    global serial_initialised
+    global audio_level
+
+    # initialise serial link to ADC slave
+    try:
+        srl = serial.Serial("/dev/ttyACM0",
+                            baudrate=57600,
+                            parity=serial.PARITY_NONE,
+                            stopbits=serial.STOPBITS_ONE,
+                            bytesize=serial.EIGHTBITS,
+                            writeTimeout=0,
+                            timeout=10,
+                            rtscts=False,
+                            dsrdtr=False,
+                            xonxoff=False)
+
+        if srl.isOpen():
+            serial_initialised = True
+
+    except Exception as e:
+        exit(1)
 
     # initialise DMX slave listener
     ola_client = OlaClient.OlaClient()
@@ -134,7 +158,13 @@ def main():
     print('\tsending pixels forever (control-c to exit)...\n')
 
     while True:
-        audio_level = math.sin(effective_time*6) / 2 + 0.5
+        # audio_level = math.sin(effective_time*6) / 2 + 0.5
+        if serial_initialised:
+            try:
+                srl.write('x')
+                audio_level = float(srl.readline())/1023.0
+            except Exception as e:
+                pass
 
         frame_start = time.time()
 
