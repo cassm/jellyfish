@@ -85,8 +85,8 @@ def process_dmx_frame(data):
     global mode_cycle
     global current_rgb_setting
 
-    # if len(data) != 7:
-    #     return
+    if len(data) != 8:
+        return
 
     speed_val = data[0]/32.0
     mode_id = data[1]
@@ -97,9 +97,7 @@ def process_dmx_frame(data):
     audio_respond = get_bit(data[3], 1)
     mode_cycle = get_bit(data[3], 0)
 
-    current_rgb_setting = tuple(data[i+4]*0.5 + current_rgb_setting[i]*0.5 for i in
-        range(3))
-    #current_rgb_setting = (data[4], data[5], data[6])
+    current_rgb_setting = (data[4], data[5], data[6])
 
 
 def main():
