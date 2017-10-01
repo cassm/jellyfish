@@ -64,6 +64,7 @@ last_measured_time = time.time()
 effective_time = time.time()
 
 pixels = [(0.0, 0.0, 0.0) for i in range(n_pixels)]
+current_rgb_setting = (0, 0, 0)
 
 speed_val = 1
 mode_id = 0
@@ -74,6 +75,9 @@ auto_colour = False
 colour_mash = False
 mode_cycle = False
 
+def get_bit(byteval,idx):
+      return ((byteval&(1<<idx))!=0)
+
 def process_dmx_frame(data):
     global speed_val
     global mode_id
@@ -82,17 +86,23 @@ def process_dmx_frame(data):
     global auto_colour
     global colour_mash
     global mode_cycle
+    global current_rgb_setting
 
-    if len(data) != 7:
-        return
+    # if len(data) != 7:
+    #     return
 
     speed_val = data[0]/32.0
     mode_id = data[1]
     audio_level = data[2] / 255.0
-    audio_respond = data[3]
-    auto_colour = data[4]
-    colour_mash = data[5]
-    mode_cycle = data[6]
+
+    auto_colour = get_bit(data[3], 3)
+    colour_mash = get_bit(data[3], 2)
+    audio_respond = get_bit(data[3], 1)
+    mode_cycle = get_bit(data[3], 0)
+
+    current_rgb_setting = tuple(data[i+4]*0.5 + current_rgb_setting[i]*0.5 for i in
+        range(3))
+    #current_rgb_setting = (data[4], data[5], data[6])
 
 
 def main():
