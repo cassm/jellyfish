@@ -78,6 +78,7 @@ audio_respond = True
 auto_colour = False
 colour_mash = False
 mode_cycle = False
+beats_since_last = 0
 
 def get_bit(byteval,idx):
       return ((byteval&(1<<idx))!=0)
@@ -87,6 +88,7 @@ def process_dmx_frame(data):
     global mode_id
     global audio_level
     global audio_respond
+    global beats_since_last
     global auto_colour
     global colour_mash
     global mode_cycle
@@ -98,6 +100,11 @@ def process_dmx_frame(data):
     speed_val = data[0]/32.0
     mode_id = data[1]
     audio_level = data[2] / 255.0
+
+    beat_now = get_bit(data[3], 4)
+
+    if beat_now:
+        beats_since_last += 1
 
     auto_colour = get_bit(data[3], 3)
     colour_mash = get_bit(data[3], 2)
@@ -147,6 +154,7 @@ def update_manual_palette(current_time, value):
 
 def main():
     global pixels
+    global beats_since_last
     global last_measured_time
     global effective_time
     global last_mode_id
@@ -231,18 +239,22 @@ def main():
                 effective_time, current_palette, audio_level, audio_respond)
 
         elif mode_id == 4:
-            rainbow_waves.set_pixels(pixels, effective_time, 29, -13, 19, audio_level, audio_respond)
+            rainbow_waves.set_pixels(pixels, n_pixels_per_string,
+                effective_time, 29, -13, 19, current_palette, audio_level, audio_respond)
 
         elif mode_id == 5:
             wobbler.set_pixels(pixels, n_pixels_per_string, effective_time, audio_level, audio_respond)
 
         elif mode_id == 6:
-            warp.set_pixels(pixels, n_pixels_per_string, 0.0625, 2, effective_time, current_palette, audio_level, audio_respond)
+            warp.set_pixels(pixels, n_pixels_per_string, 0.0625, 2,
+                effective_time, current_palette, beats_since_last > 0, audio_respond)
 
         client.put_pixels(pixels, channel=0)
 
         frame_duration = time.time() - frame_start
         frame_delay = 1.0 / fps
+
+        beats_since_last = 0
 
         if frame_delay > frame_duration:
           time.sleep(frame_delay - frame_duration)

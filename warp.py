@@ -7,6 +7,7 @@ sys.path.insert(0, cwd+"/openpixelcontrol/python/")
 
 import random
 import math
+import time
 import opc
 import color_utils
 
@@ -14,6 +15,7 @@ import pattern_utils
 import palette_utils
 
 initialised = False
+last_beat_detected = time.time()
 
 class Spark:
     def __init__(self, palette, pixels_per_string, time):
@@ -49,20 +51,44 @@ def init(n_strings):
     warp_n_strings = n_strings
     sparks = list([] for i in range(n_strings))
 
-def set_pixels(pixel_buff, pixels_per_string, spark_chance, max_concurrent_sparks, elapsed_time, palette, audio_level, audio_respond):
+shot_index = 0
+
+def set_pixels(pixel_buff, pixels_per_string, spark_chance, max_concurrent_sparks, elapsed_time, palette, beat_detected, audio_respond):
     global sparks
+    global shot_index
+    global last_beat_detected
 
     if not initialised:
         return
 
-    if audio_respond:
-        max_concurrent_sparks = max(int(max_concurrent_sparks * (audio_level**2) * 5), 1)
-        spark_chance *= (audio_respond**2) * 5
+    # if audio_respond:
+    #     max_concurrent_sparks = max(int(warp_n_strings * (audio_level**2)), 1)
+    #     spark_chance = max((audio_respond**2), spark_chance/4)
 
-    for ii in range(max_concurrent_sparks+1):
-        if random.random() < spark_chance:
-            strand = random.randint(0, len(sparks)-1)
-            sparks[strand].append(Spark(palette, pixels_per_string, elapsed_time))
+    if (audio_respond):
+        spark_chance /= 2
+
+        if beat_detected:
+            shot_index_1 = int(shot_index % warp_n_strings)
+            shot_index_2 = int((shot_index + warp_n_strings/2) % warp_n_strings)
+
+            sparks[shot_index_1].append(Spark(palette, pixels_per_string, elapsed_time))
+            sparks[shot_index_2].append(Spark(palette, pixels_per_string, elapsed_time))
+
+            shot_index += 1
+            last_beat_detected = time.time()
+
+        if last_beat_detected + 1 < time.time():
+            for ii in range(max_concurrent_sparks+1):
+                if random.random() < spark_chance:
+                    strand = random.randint(0, len(sparks)-1)
+                    sparks[strand].append(Spark(palette, pixels_per_string, elapsed_time))
+
+    else:
+        for ii in range(max_concurrent_sparks+1):
+            if random.random() < spark_chance:
+                strand = random.randint(0, len(sparks)-1)
+                sparks[strand].append(Spark(palette, pixels_per_string, elapsed_time))
 
     for ii in range(len(pixel_buff)):
         strand_id = int(ii / pixels_per_string)
