@@ -10,8 +10,9 @@ import opc
 import color_utils
 
 import pattern_utils
+import palette_utils
 
-def set_pixels(pixel_buff, elapsed_time, speed_r, speed_g, speed_b, audio_level, audio_respond):
+def set_pixels(pixel_buff, pixels_per_string, elapsed_time, speed_r, speed_g, speed_b, palette, audio_level, audio_respond):
     # how many sine wave cycles are squeezed into our n_pixels
     # 24 happens to create nice diagonal stripes on the wall layout
     freq_r = 24
@@ -36,8 +37,9 @@ def set_pixels(pixel_buff, elapsed_time, speed_r, speed_g, speed_b, audio_level,
         blackstripes_offset = color_utils.cos(t, offset=0.9, period=60, minn=-0.5, maxx=3)
 
         if audio_respond:
+            root_lev = math.sqrt(audio_level)
             blackstripes = color_utils.clamp(blackstripes +
-                blackstripes_offset, 0+audio_level/2, 0.5+audio_level/2)
+                blackstripes_offset, 0+root_lev/2, 0.5+root_lev/2)
         else:
             blackstripes = color_utils.clamp(blackstripes + blackstripes_offset, 0, 1)
 
@@ -46,4 +48,11 @@ def set_pixels(pixel_buff, elapsed_time, speed_r, speed_g, speed_b, audio_level,
         g = blackstripes * color_utils.remap(math.cos((t/speed_g + pct*freq_g)*math.pi*2), -1, 1, 0, 256)
         b = blackstripes * color_utils.remap(math.cos((t/speed_b + pct*freq_b)*math.pi*2), -1, 1, 0, 256)
         # pixel_buff[ii] = pattern_utils.fadeDownTo(pixel_buff[ii], (r, g, b), 0.5)
+
+        palette_pixel_offset = palette_utils.get_total_offset(elapsed_time, ii, pixels_per_string, palette.len)
+        palette_val = palette.vals[palette_pixel_offset]
+        r *= palette_val[0]/255.0
+        g *= palette_val[1]/255.0
+        b *= palette_val[2]/255.0
+
         pixel_buff[ii] = tuple(min(channel*audio_factor, 255) for channel in (r, g, b))
