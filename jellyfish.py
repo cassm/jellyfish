@@ -45,6 +45,7 @@ from palette_utils import Palette
 import spiral
 import sparkle
 import wash
+import warp
 
 import rainbow_waves
 import wobbler
@@ -185,6 +186,7 @@ def main():
     print('')
 
     sparkle.init(n_pixels)
+    warp.init(n_strings)
 
     # send pixels
     print('\tsending pixels forever (control-c to exit)...\n')
@@ -233,6 +235,9 @@ def main():
 
         elif mode_id == 5:
             wobbler.set_pixels(pixels, n_pixels_per_string, effective_time, audio_level, audio_respond)
+
+        elif mode_id == 6:
+            warp.set_pixels(pixels, n_pixels_per_string, 0.0625, 2, effective_time, current_palette, audio_level, audio_respond)
 
         client.put_pixels(pixels, channel=0)
 
