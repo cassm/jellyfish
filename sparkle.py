@@ -35,7 +35,7 @@ def set_pixels(pixel_buff, pixels_per_string, sparkle_chance, max_concurrent_spa
 
     if audio_respond:
         max_concurrent_sparkles = max(int(max_concurrent_sparkles * (audio_level**2) * 5), 1)
-        sparkle_chance = max(sparkle_chance * (audio_level**2) * 5, sparkle_chance/4)
+        sparkle_chance = max(sparkle_chance * (audio_level**2) * 5, sparkle_chance/3)
 
     for ii in range(max_concurrent_sparkles+1):
         if random.random() < sparkle_chance:
