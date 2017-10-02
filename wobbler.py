@@ -10,19 +10,20 @@ import opc
 import color_utils
 
 import pattern_utils
+import palette_utils
 
 pixel_order = 0
 last_pixel_order_switch = 0
 min_pixel_order_switch_interval = 5
 
-def set_pixels(pixels, pixels_per_string, elapsed_time, audio_level, audio_respond):
+def set_pixels(pixels, pixels_per_string, elapsed_time, palette, audio_level, audio_respond):
     global pixel_order
     global last_pixel_order_switch
 
-    audio_factor = 1.0
+    wobble_factor = 1.0
 
     if audio_respond:
-        audio_factor = audio_level + 0.5
+        wobble_factor = audio_level/2 + 0.75
 
     n_pixels = len(pixels)
     n_strings = int(n_pixels / pixels_per_string)
@@ -30,7 +31,7 @@ def set_pixels(pixels, pixels_per_string, elapsed_time, audio_level, audio_respo
     time_cos_factor = 2
     wobble_amplitude = 5
     band_radius = pixels_per_string/2 + math.cos(elapsed_time/time_cos_factor)*18 - 13
-    colour_offset = 3.14/6
+    colour_offset = 3.14/ (6*wobble_factor)
     cos_factor = 6*3.14/(n_pixels/pixels_per_string)
     t = elapsed_time*4
     offset_ordering = [ [ 0, 1, 2], [0, 2, 1], [1, 0, 2] ]
@@ -44,7 +45,7 @@ def set_pixels(pixels, pixels_per_string, elapsed_time, audio_level, audio_respo
         for pixel in range(pixels_per_string):
             pixCol = [0, 0, 0]
             for colour in range(3):
-                distance = (bandLocation[colour] - pixel) * audio_factor
+                distance = bandLocation[colour] - pixel
                 if distance < 0:
                     distance *= -1
 
@@ -52,4 +53,11 @@ def set_pixels(pixels, pixels_per_string, elapsed_time, audio_level, audio_respo
 
             r, g, b = color_utils.gamma(pixCol, 2.2)
             # pixels[string*pixels_per_string + pixel] = pattern_utils.fadeDownTo(pixels[string*pixels_per_string + pixel], (g*255, r*255, b*255), 0.5)
+
+            palette_pixel_offset = palette_utils.get_total_offset(elapsed_time, pixel, pixels_per_string, palette.len)
+            palette_val = palette.vals[palette_pixel_offset]
+            r *= palette_val[0]/255.0
+            g *= palette_val[1]/255.0
+            b *= palette_val[2]/255.0
+
             pixels[string*pixels_per_string + pixel] = (g*255, r*255, b*255)

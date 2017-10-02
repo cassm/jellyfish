@@ -243,7 +243,7 @@ def main():
                 effective_time, 29, -13, 19, current_palette, audio_level, audio_respond)
 
         elif mode_id == 5:
-            wobbler.set_pixels(pixels, n_pixels_per_string, effective_time, audio_level, audio_respond)
+            wobbler.set_pixels(pixels, n_pixels_per_string, effective_time, current_palette, audio_level, audio_respond)
 
         elif mode_id == 6:
             warp.set_pixels(pixels, n_pixels_per_string, 0.0625, 2,
