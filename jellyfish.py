@@ -39,6 +39,8 @@ import threading
 
 import colours
 import pattern_utils
+import palette_utils
+from palette_utils import Palette
 
 import spiral
 import sparkle
@@ -54,6 +56,10 @@ import palettes
 n_pixels_per_string = 50
 n_strings = 8
 n_pixels = n_strings * n_pixels_per_string
+
+manual_palette = Palette(10000, [])
+
+last_manual_palette_sample = 0
 
 fps = 60
 
@@ -99,6 +105,44 @@ def process_dmx_frame(data):
 
     current_rgb_setting = (data[4], data[5], data[6])
 
+update_manual_palette_called = False
+
+def update_manual_palette(current_time, value):
+    global manual_palette
+    global last_manual_palette_sample
+    global update_manual_palette_called
+
+    last_index = palette_utils.get_time_offset(last_manual_palette_sample, manual_palette.len)
+    new_index = palette_utils.get_time_offset(current_time, manual_palette.len)
+
+    if not update_manual_palette_called:
+        # first call
+
+        manual_palette.vals = list(value for i in range(manual_palette.len + 1))
+        last_manual_palette_sample = current_time
+        update_manual_palette_called = True
+
+    elif last_index == new_index:
+        # time has stopped
+        pass
+
+    else:
+        # time is moving forwards
+
+        if new_index < last_index:
+            for i in range(new_index, last_index+1):
+                manual_palette.vals[i] = value
+
+            last_manual_palette_sample = current_time
+
+        else:
+            # wrap case
+            for i in range(new_index, manual_palette.len+1):
+                manual_palette.vals[i] = value
+            for i in range(0, last_index):
+                manual_palette.vals[i] = value
+
+            last_manual_palette_sample = current_time
 
 def main():
     global pixels
@@ -146,34 +190,43 @@ def main():
     print('\tsending pixels forever (control-c to exit)...\n')
 
     while True:
-        # audio_level = math.sin(effective_time*6) / 2 + 0.5
-
         frame_start = time.time()
 
-        if last_mode_id != mode_id:
-            print "Mode switch {} -> {}".format(last_mode_id, mode_id)
-            last_mode_id = mode_id
+        # update effective time in line with speed value
+        effective_time += (time.time() - last_measured_time) * speed_val
+        last_measured_time = time.time()
+
         # check for new dmx frames
         readable, writable, exceptional = select.select([sock], [], [], 0)
         while readable:
             ola_client.SocketReady()
             readable, writable, exceptional = select.select([sock], [], [], 0)
 
-        # update effective time in line with speed value
-        effective_time += (time.time() - last_measured_time) * speed_val
-        last_measured_time = time.time()
+        update_manual_palette(effective_time, current_rgb_setting)
+
+        if last_mode_id != mode_id:
+            print "Mode switch {} -> {}".format(last_mode_id, mode_id)
+            last_mode_id = mode_id
+
+        current_palette = manual_palette
+
+        if auto_colour:
+          current_palette = palettes.auto
 
         if mode_id == 0:
-            wash.set_pixels(pixels, n_pixels_per_string, effective_time, palettes.auto, audio_level, audio_respond)
+            wash.set_pixels(pixels, n_pixels_per_string, effective_time, current_palette, audio_level, audio_respond)
 
         elif mode_id == 1:
-            sparkle.set_pixels(pixels, n_pixels_per_string, 0.5, 5, effective_time, palettes.auto, audio_level, audio_respond)
+            sparkle.set_pixels(pixels, n_pixels_per_string, 0.5, 5,
+                effective_time, current_palette, audio_level, audio_respond)
 
         elif mode_id == 2:
-            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, True, effective_time, palettes.auto, audio_level, audio_respond)
+            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, True,
+                effective_time, current_palette, audio_level, audio_respond)
 
         elif mode_id == 3:
-            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, False, effective_time, palettes.auto, audio_level, audio_respond)
+            spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, False,
+                effective_time, current_palette, audio_level, audio_respond)
 
         elif mode_id == 4:
             rainbow_waves.set_pixels(pixels, effective_time, 29, -13, 19, audio_level, audio_respond)
