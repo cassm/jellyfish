@@ -16,14 +16,9 @@ pixel_order = 0
 last_pixel_order_switch = 0
 min_pixel_order_switch_interval = 5
 
-def set_pixels(pixels, pixels_per_string, elapsed_time, palette, audio_level, audio_respond):
+def set_pixels(pixels, pixels_per_string, elapsed_time, palette, beat_now, audio_level, audio_respond):
     global pixel_order
     global last_pixel_order_switch
-
-    wobble_factor = 1.0
-
-    if audio_respond:
-        wobble_factor = audio_level/2 + 0.75
 
     n_pixels = len(pixels)
     n_strings = int(n_pixels / pixels_per_string)
@@ -31,14 +26,20 @@ def set_pixels(pixels, pixels_per_string, elapsed_time, palette, audio_level, au
     time_cos_factor = 2
     wobble_amplitude = 5
     band_radius = pixels_per_string/2 + math.cos(elapsed_time/time_cos_factor)*18 - 13
-    colour_offset = 3.14/ (6*wobble_factor)
+    colour_offset = 3.14/6
     cos_factor = 6*3.14/(n_pixels/pixels_per_string)
     t = elapsed_time*4
     offset_ordering = [ [ 0, 1, 2], [0, 2, 1], [1, 0, 2] ]
 
-    if math.cos(elapsed_time/time_cos_factor) < -0.99 and elapsed_time - last_pixel_order_switch > min_pixel_order_switch_interval:
-        pixel_order = (pixel_order + 1) % len(offset_ordering)
-        last_pixel_order_switch = elapsed_time
+    if audio_respond:
+        if beat_now:
+            pixel_order = (pixel_order + 1) % len(offset_ordering)
+            last_pixel_order_switch = elapsed_time
+
+    else:
+        if math.cos(elapsed_time/time_cos_factor) < -0.99 and elapsed_time - last_pixel_order_switch > min_pixel_order_switch_interval:
+            pixel_order = (pixel_order + 1) % len(offset_ordering)
+            last_pixel_order_switch = elapsed_time
 
     for string in range(n_strings):
         bandLocation = tuple(band_radius + wobble_amplitude*math.cos(t + string*cos_factor + colour_offset*offset_ordering[pixel_order][colour]) for colour in range(3))
@@ -51,6 +52,8 @@ def set_pixels(pixels, pixels_per_string, elapsed_time, palette, audio_level, au
 
                 pixCol[colour] = (2 + max(band_radius, 0.0000001)/10)/distance
 
+                if audio_respond:
+                    pixCol[colour] *= math.sqrt(audio_level)/3 + 0.84
             r, g, b = color_utils.gamma(pixCol, 2.2)
             # pixels[string*pixels_per_string + pixel] = pattern_utils.fadeDownTo(pixels[string*pixels_per_string + pixel], (g*255, r*255, b*255), 0.5)
 
