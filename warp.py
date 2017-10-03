@@ -19,8 +19,7 @@ last_beat_detected = time.time()
 
 class Spark:
     def __init__(self, palette, pixels_per_string, time):
-        palette_pixel_offset = palette_utils.get_total_offset(time, 0, 10, palette.len)
-        self.colour = palette.vals[palette_pixel_offset]
+        self.colour = palette_utils.get_value(elapsed_time, 0, 10, palette, colour_mash)
         self.time = time
         self.pixels_per_string = pixels_per_string
         self.active = True
@@ -53,7 +52,7 @@ def init(n_strings):
 
 shot_index = 0
 
-def set_pixels(pixel_buff, pixels_per_string, spark_chance, max_concurrent_sparks, elapsed_time, palette, beat_detected, audio_respond):
+def set_pixels(pixel_buff, pixels_per_string, spark_chance, max_concurrent_sparks, elapsed_time, palette, beat_detected, audio_respond, colour_mash):
     global sparks
     global shot_index
     global last_beat_detected

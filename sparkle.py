@@ -26,7 +26,7 @@ def init(n_pixels):
     sparkle_colour = list((0.0, 0.0, 0.0) for i in range(n_pixels))
     sparkle_time = list(0.0 for i in range(n_pixels))
 
-def set_pixels(pixel_buff, pixels_per_string, sparkle_chance, max_concurrent_sparkles, elapsed_time, palette, audio_level, audio_respond):
+def set_pixels(pixel_buff, pixels_per_string, sparkle_chance, max_concurrent_sparkles, elapsed_time, palette, audio_level, audio_respond, colour_mash):
     global sparkle_colour
     global sparkle_time
 
@@ -40,9 +40,8 @@ def set_pixels(pixel_buff, pixels_per_string, sparkle_chance, max_concurrent_spa
     for ii in range(max_concurrent_sparkles+1):
         if random.random() < sparkle_chance:
             sparkle_index = random.randint(0, len(sparkle_time)-1)
-            palette_pixel_offset = palette_utils.get_total_offset(elapsed_time, sparkle_index, pixels_per_string, palette.len)
             sparkle_time[sparkle_index] = elapsed_time
-            sparkle_colour[sparkle_index] = palette.vals[palette_pixel_offset]
+            sparkle_colour[sparkle_index] = palette_utils.get_value(elapsed_time, sparkle_index, pixels_per_string, palette, colour_mash)
 
     for ii in range(len(pixel_buff)):
         sparkle_intensity = min(pattern_utils.inverse_square(elapsed_time, sparkle_time[ii], 2.0), 1)

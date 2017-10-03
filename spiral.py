@@ -12,12 +12,10 @@ import color_utils
 import pattern_utils
 import palette_utils
 
-def set_pixels(pixel_buff, pixels_per_string, num_strings, waves_per_string, add_spiral, elapsed_time, palette, audio_level, audio_respond):
+def set_pixels(pixel_buff, pixels_per_string, num_strings, waves_per_string, add_spiral, elapsed_time, palette, audio_level, audio_respond, colour_mash):
     for ii in range(len(pixel_buff)):
         pixel_index = float(ii) % pixels_per_string
         string_index = float(ii) / pixels_per_string
-
-        palette_pixel_offset = palette_utils.get_total_offset(elapsed_time, ii, pixels_per_string, palette.len)
 
         scaling_factor = math.pi*2 / pixels_per_string * waves_per_string
 
@@ -37,7 +35,8 @@ def set_pixels(pixel_buff, pixels_per_string, num_strings, waves_per_string, add
         if audio_respond:
             brightness_level *= min(math.sqrt(audio_level) + 0.4, 1)
 
-        pixel_value = tuple(brightness_level * channel / 255 for channel in palette.vals[palette_pixel_offset])
+        pixel_value = palette_utils.get_value(elapsed_time, ii, pixels_per_string, palette, colour_mash)
+        pixel_value = tuple(brightness_level * channel / 255 for channel in pixel_value)
 
         pixel_value = tuple (channel * 255 for channel in color_utils.gamma(pixel_value, 2.2))
 

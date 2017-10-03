@@ -16,7 +16,7 @@ pixel_order = 0
 last_pixel_order_switch = 0
 min_pixel_order_switch_interval = 5
 
-def set_pixels(pixels, pixels_per_string, elapsed_time, palette, beat_now, audio_level, audio_respond):
+def set_pixels(pixels, pixels_per_string, elapsed_time, palette, beat_now, audio_level, audio_respond, colour_mash):
     global pixel_order
     global last_pixel_order_switch
 
@@ -57,8 +57,7 @@ def set_pixels(pixels, pixels_per_string, elapsed_time, palette, beat_now, audio
             r, g, b = color_utils.gamma(pixCol, 2.2)
             # pixels[string*pixels_per_string + pixel] = pattern_utils.fadeDownTo(pixels[string*pixels_per_string + pixel], (g*255, r*255, b*255), 0.5)
 
-            palette_pixel_offset = palette_utils.get_total_offset(elapsed_time, pixel, pixels_per_string, palette.len)
-            palette_val = palette.vals[palette_pixel_offset]
+            palette_val = palette_utils.get_value(elapsed_time, ii, pixels_per_string, palette, colour_mash)
             r *= palette_val[0]/255.0
             g *= palette_val[1]/255.0
             b *= palette_val[2]/255.0

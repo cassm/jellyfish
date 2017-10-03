@@ -12,7 +12,7 @@ import color_utils
 import pattern_utils
 import palette_utils
 
-def set_pixels(pixel_buff, pixels_per_string, elapsed_time, speed_r, speed_g, speed_b, palette, audio_level, audio_respond):
+def set_pixels(pixel_buff, pixels_per_string, elapsed_time, speed_r, speed_g, speed_b, palette, audio_level, audio_respond, colour_mash):
     # how many sine wave cycles are squeezed into our n_pixels
     # 24 happens to create nice diagonal stripes on the wall layout
     freq_r = 24
@@ -49,8 +49,7 @@ def set_pixels(pixel_buff, pixels_per_string, elapsed_time, speed_r, speed_g, sp
         b = blackstripes * color_utils.remap(math.cos((t/speed_b + pct*freq_b)*math.pi*2), -1, 1, 0, 256)
         # pixel_buff[ii] = pattern_utils.fadeDownTo(pixel_buff[ii], (r, g, b), 0.5)
 
-        palette_pixel_offset = palette_utils.get_total_offset(elapsed_time, ii, pixels_per_string, palette.len)
-        palette_val = palette.vals[palette_pixel_offset]
+        palette_val = palette_utils.get_value(elapsed_time, ii, pixels_per_string, palette, colour_mash)
         r *= palette_val[0]/255.0
         g *= palette_val[1]/255.0
         b *= palette_val[2]/255.0
