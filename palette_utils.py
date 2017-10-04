@@ -19,16 +19,18 @@ def get_value(elapsed_time, pixel_index, pixels_per_string, palette, colour_mash
         mix_level = 0.1
 
         string_index = pixel_index % pixels_per_string
-        shimmer_level = sum(val) * mix_level
+        shimmer_level = (sum(val) * mix_level) / 255.0
 
-        time_coefficients = [0.1725, 0.23267, 0.68365]
+        long_time_coefficients = [0.081725, 0.123267, 0.368365]
+        short_time_coefficients = [1.12, 2.001, 1.98]
 
-        additive_val = list(math.sin(elapsed_time * coefficient + string_index * 5)for coefficient in time_coefficients)
+        short_mix_factor = 0.25
 
-        if additive_val != 0:
-            scaling_factor = shimmer_level / sum(additive_val)
+        short_level = list(math.sin(elapsed_time * coefficient + string_index * 5) * short_mix_factor for coefficient in short_time_coefficients)
+        long_level = list(math.sin(elapsed_time * coefficient + string_index * 5) * (1-short_mix_factor) for coefficient in long_time_coefficients)
+        additive_val = list(255.0 * (short_level[i] + long_level[i]) for i in range(3))
 
-            val = tuple(val[channel] * (1 - mix_level) + additive_val[channel] * scaling_factor for channel in range(3))
+        val = tuple(val[channel] * (1 - shimmer_level) + additive_val[channel] * shimmer_level for channel in range(3))
 
     return val
 

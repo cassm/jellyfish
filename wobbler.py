@@ -57,7 +57,7 @@ def set_pixels(pixels, pixels_per_string, elapsed_time, palette, beat_now, audio
             r, g, b = color_utils.gamma(pixCol, 2.2)
             # pixels[string*pixels_per_string + pixel] = pattern_utils.fadeDownTo(pixels[string*pixels_per_string + pixel], (g*255, r*255, b*255), 0.5)
 
-            palette_val = palette_utils.get_value(elapsed_time, ii, pixels_per_string, palette, colour_mash)
+            palette_val = palette_utils.get_value(elapsed_time, pixel, pixels_per_string, palette, colour_mash)
             r *= palette_val[0]/255.0
             g *= palette_val[1]/255.0
             b *= palette_val[2]/255.0

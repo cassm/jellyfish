@@ -18,8 +18,8 @@ initialised = False
 last_beat_detected = time.time()
 
 class Spark:
-    def __init__(self, palette, pixels_per_string, time):
-        self.colour = palette_utils.get_value(elapsed_time, 0, 10, palette, colour_mash)
+    def __init__(self, palette, pixels_per_string, time, colour_mash):
+        self.colour = palette_utils.get_value(time, 0, 10, palette, colour_mash)
         self.time = time
         self.pixels_per_string = pixels_per_string
         self.active = True
@@ -71,8 +71,10 @@ def set_pixels(pixel_buff, pixels_per_string, spark_chance, max_concurrent_spark
             shot_index_1 = int(shot_index % warp_n_strings)
             shot_index_2 = int((shot_index + warp_n_strings/2) % warp_n_strings)
 
-            sparks[shot_index_1].append(Spark(palette, pixels_per_string, elapsed_time))
-            sparks[shot_index_2].append(Spark(palette, pixels_per_string, elapsed_time))
+            sparks[shot_index_1].append(Spark(palette, pixels_per_string,
+              elapsed_time, colour_mash))
+            sparks[shot_index_2].append(Spark(palette, pixels_per_string,
+              elapsed_time, colour_mash))
 
             shot_index += 1
             last_beat_detected = time.time()
@@ -81,13 +83,15 @@ def set_pixels(pixel_buff, pixels_per_string, spark_chance, max_concurrent_spark
             for ii in range(max_concurrent_sparks+1):
                 if random.random() < spark_chance:
                     strand = random.randint(0, len(sparks)-1)
-                    sparks[strand].append(Spark(palette, pixels_per_string, elapsed_time))
+                    sparks[strand].append(Spark(palette, pixels_per_string,
+                      elapsed_time, colour_mash))
 
     else:
         for ii in range(max_concurrent_sparks+1):
             if random.random() < spark_chance:
                 strand = random.randint(0, len(sparks)-1)
-                sparks[strand].append(Spark(palette, pixels_per_string, elapsed_time))
+                sparks[strand].append(Spark(palette, pixels_per_string,
+                  elapsed_time, colour_mash))
 
     for ii in range(len(pixel_buff)):
         strand_id = int(ii / pixels_per_string)
