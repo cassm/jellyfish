@@ -30,7 +30,7 @@ def get_value(elapsed_time, pixel_index, pixels_per_string, palette, colour_mash
 
             val = tuple(val[channel] * (1 - mix_level) + additive_val[channel] * scaling_factor for channel in range(3))
 
-        return val
+    return val
 
 class Palette:
     def __init__(self, len, vals):
