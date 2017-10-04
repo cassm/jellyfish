@@ -75,8 +75,8 @@ mode_id = 0
 last_mode_id = 0
 audio_level = 0.5
 audio_respond = False
-auto_colour = True
-colour_mash = True
+auto_colour = False
+colour_mash = False
 mode_cycle = False
 beats_since_last = 0
 
@@ -161,9 +161,9 @@ def main():
     global audio_level
 
     # initialise DMX slave listener
-    # ola_client = OlaClient.OlaClient()
-    # sock = ola_client.GetSocket()
-    # ola_client.RegisterUniverse(1, ola_client.REGISTER, process_dmx_frame)
+    ola_client = OlaClient.OlaClient()
+    sock = ola_client.GetSocket()
+    ola_client.RegisterUniverse(1, ola_client.REGISTER, process_dmx_frame)
 
     # handle command line
     parser = optparse.OptionParser()
@@ -208,10 +208,10 @@ def main():
         last_measured_time = time.time()
 
         # check for new dmx frames
-        # readable, writable, exceptional = select.select([sock], [], [], 0)
-        # while readable:
-            # ola_client.SocketReady()
-            # readable, writable, exceptional = select.select([sock], [], [], 0)
+        readable, writable, exceptional = select.select([sock], [], [], 0)
+        while readable:
+            ola_client.SocketReady()
+            readable, writable, exceptional = select.select([sock], [], [], 0)
 
         update_manual_palette(effective_time, current_rgb_setting)
 
