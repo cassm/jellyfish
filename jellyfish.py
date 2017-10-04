@@ -5,7 +5,9 @@ import sys
 import os
 cwd = os.getcwd()
 
-sys.path.insert(0, cwd+"/openpixelcontrol/python/")
+# sys.path.insert(0, cwd+"/openpixelcontrol/python/")
+sys.path.insert(0, "/home/pi/src/jellyfish/openpixelcontrol/python/")
+sys.path.insert(0, "/home/pi/src/jellyfish")
 
 import time
 import math
@@ -46,6 +48,7 @@ import spiral
 import sparkle
 import wash
 import warp
+import boot
 import rainbow_waves
 import wobbler
 import web
@@ -58,7 +61,7 @@ n_pixels_per_string = 50
 n_strings = 8
 n_pixels = n_strings * n_pixels_per_string
 
-manual_palette = Palette(10000, [])
+manual_palette = Palette(30000, [])
 
 last_manual_palette_sample = 0
 
@@ -160,14 +163,10 @@ def main():
     global last_mode_id
     global audio_level
 
-    # initialise DMX slave listener
-    ola_client = OlaClient.OlaClient()
-    sock = ola_client.GetSocket()
-    ola_client.RegisterUniverse(1, ola_client.REGISTER, process_dmx_frame)
-
     # handle command line
     parser = optparse.OptionParser()
-    parser.add_option('-l', '--layout', dest='layout', default='layouts/disc-' + str(n_strings) + '.json',
+    parser.add_option('-l', '--layout', dest='layout',
+        default='/home/pi/src/jellyfish/layouts/disc-' + str(n_strings) + '.json',
                       action='store', type='string',
                       help='layout file')
     parser.add_option('-s', '--server', dest='server', default='127.0.0.1:7890',
@@ -193,9 +192,23 @@ def main():
         print('    WARNING: could not connect to %s' % options.server)
     print('')
 
-    sparkle.init(n_pixels)
+    sparkle.init(n_pixels, time.time())
     warp.init(n_strings)
     web.init(n_strings)
+    boot.init(n_strings)
+
+    time.sleep(20)
+
+    # show boot animation
+    while not boot.render(pixels, n_pixels_per_string, time.time(), palettes.auto):
+        client.put_pixels(pixels, channel=0)
+        time.sleep(1.0/fps)
+    print "Booted"
+
+    # initialise DMX slave listener
+    ola_client = OlaClient.OlaClient()
+    sock = ola_client.GetSocket()
+    ola_client.RegisterUniverse(1, ola_client.REGISTER, process_dmx_frame)
 
     # send pixels
     print('\tsending pixels forever (control-c to exit)...\n')
