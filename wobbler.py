@@ -28,7 +28,7 @@ def set_pixels(pixels, pixels_per_string, elapsed_time, palette, beat_now, audio
     band_radius = pixels_per_string/2 + math.cos(elapsed_time/time_cos_factor)*18 - 13
     colour_offset = 3.14/6
     cos_factor = 6*3.14/(n_pixels/pixels_per_string)
-    t = elapsed_time*4
+    t = elapsed_time*2
     offset_ordering = [ [ 0, 1, 2], [0, 2, 1], [1, 0, 2] ]
 
     if audio_respond:

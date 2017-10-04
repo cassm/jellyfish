@@ -17,21 +17,35 @@ initialised = False
 sparkle_colour = []
 sparkle_time = []
 
-def init(n_pixels):
+last_sparkle = 0
+
+def init(n_pixels, time):
     global initialised
     global sparkle_colour
     global sparkle_time
+    global last_sparkle
 
     initialised = True
     sparkle_colour = list((0.0, 0.0, 0.0) for i in range(n_pixels))
     sparkle_time = list(0.0 for i in range(n_pixels))
+    last_sparkle = time
 
 def set_pixels(pixel_buff, pixels_per_string, sparkle_chance, max_concurrent_sparkles, elapsed_time, palette, audio_level, audio_respond, colour_mash):
     global sparkle_colour
     global sparkle_time
+    global last_sparkle
 
     if not initialised:
         return
+
+    since_last_sparkle = elapsed_time-last_sparkle
+
+    if since_last_sparkle == 0:
+        sparkle_chance = 0
+    else:
+        sparkle_chance *= 1.0/((since_last_sparkle*2) ** 2)
+
+    last_sparkle = elapsed_time
 
     if audio_respond:
         max_concurrent_sparkles = max(int(max_concurrent_sparkles * (audio_level**2) * 5), 1)

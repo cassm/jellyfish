@@ -26,14 +26,14 @@ def set_pixels(pixel_buff, pixels_per_string, num_strings, waves_per_string, add
 
         upshift = 0.55
         if audio_respond:
-            upshift = math.sqrt(audio_level)/2 + 0.2
+            upshift = math.sqrt(audio_level)/3 + 0.33
 
         brightness_level = min((math.sin(-elapsed_time +
           pixel_index*scaling_factor + spiral_offset) / 1.82) + upshift,
           1.55)
 
         if audio_respond:
-            brightness_level *= min(math.sqrt(audio_level) + 0.4, 1)
+            brightness_level *= min(math.sqrt(audio_level) + 0.35, 1)
 
         pixel_value = palette_utils.get_value(elapsed_time, ii, pixels_per_string, palette, colour_mash)
         pixel_value = tuple(brightness_level * channel / 255 for channel in pixel_value)
