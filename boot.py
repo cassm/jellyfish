@@ -32,7 +32,7 @@ class Spark:
         colour = self.palette.vals[palette_pixel_offset]
 
         if string_index < pos:
-            brightness_factor = min(1.0 / ((pos - string_index)/2), 1)
+            brightness_factor = min(1.0 / ((pos - string_index)**2), 1)
             val = tuple(int(brightness_factor * channel) for channel in colour)
             if string_index == self.pixels_per_string-1 and max(val) < 5:
                 self.active = False

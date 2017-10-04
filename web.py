@@ -15,8 +15,6 @@ import palette_utils
 string_levels = []
 string_brightness = []
 
-firsst_run = True
-
 def init(n_strings):
     global string_levels
     global string_brightness
@@ -52,7 +50,7 @@ def set_pixels(pixels, pixels_per_string, elapsed_time, palette, audio_level, au
         for pixel in range(pixels_per_string):
             palette_val = palette_utils.get_value(elapsed_time, pixel, pixels_per_string, palette, colour_mash)
 
-            pixel_level = 0.0
+            pixel_level = 1.0
 
             if audio_respond:
                 pixel_response_proportion = (1-(float(pixel) / pixels_per_string)) ** 1.2
