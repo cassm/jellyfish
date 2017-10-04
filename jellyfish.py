@@ -46,9 +46,9 @@ import spiral
 import sparkle
 import wash
 import warp
-
 import rainbow_waves
 import wobbler
+import web
 
 import palettes
 
@@ -195,6 +195,7 @@ def main():
 
     sparkle.init(n_pixels)
     warp.init(n_strings)
+    web.init(n_strings)
 
     # send pixels
     print('\tsending pixels forever (control-c to exit)...\n')
@@ -249,6 +250,9 @@ def main():
         elif mode_id == 6:
             warp.set_pixels(pixels, n_pixels_per_string, 0.0625, 2,
                 effective_time, current_palette, beats_since_last > 0, audio_respond, colour_mash)
+
+        elif mode_id == 7:
+            web.set_pixels(pixels, n_pixels_per_string, effective_time, current_palette, audio_level, audio_respond, colour_mash)
 
         client.put_pixels(pixels, channel=0)
 
