@@ -24,11 +24,11 @@ class Spark:
         self.pixels_per_string = pixels_per_string
         self.active = True
 
-    def get_val(self, index, time):
+    def get_val(self, index, elapsed_time):
         string_index = index % self.pixels_per_string
-        pos = (time - self.time) * self.pixels_per_string/3.0
+        pos = (elapsed_time - self.time) * self.pixels_per_string/1.5
         if string_index < pos:
-            brightness_factor = min(1.0 / ((pos - string_index)/2), 1)
+            brightness_factor = min(1.0 / (((pos - string_index)/3)**2), 1.5)
             val = tuple(int(brightness_factor * channel) for channel in self.colour)
             if string_index == self.pixels_per_string-1 and val == (0,0,0):
                 self.active = False
@@ -52,7 +52,7 @@ def init(n_strings):
 
 shot_index = 0
 
-def set_pixels(pixel_buff, pixels_per_string, spark_chance, max_concurrent_sparks, elapsed_time, palette, beat_detected, audio_respond, colour_mash):
+def set_pixels(pixel_buff, pixels_per_string, spark_chance, max_concurrent_sparks, elapsed_time, palette, beat_detected, audio_respond, colour_mash, add, force_sparks):
     global sparks
     global shot_index
     global last_beat_detected
@@ -64,7 +64,11 @@ def set_pixels(pixel_buff, pixels_per_string, spark_chance, max_concurrent_spark
     #     max_concurrent_sparks = max(int(warp_n_strings * (audio_level**2)), 1)
     #     spark_chance = max((audio_respond**2), spark_chance/4)
 
-    if (audio_respond):
+    if (force_sparks):
+        for x in range(len(sparks)):
+            sparks[x].append(Spark(palette, pixels_per_string, elapsed_time, False))
+
+    elif (audio_respond):
         spark_chance /= 2
 
         if beat_detected:
@@ -103,7 +107,10 @@ def set_pixels(pixel_buff, pixels_per_string, spark_chance, max_concurrent_spark
             if sum(spark_val) > sum(val):
                 val = spark_val
 
-        pixel_buff[ii] = val
+        if add:
+            pixel_buff[ii] = tuple(max(val[channel], pixel_buff[ii][channel]) for channel in range(3))
+        else:
+            pixel_buff[ii] = val
 
     for ii in range(len(sparks)):
         sparks[ii] = list(spark for spark in sparks[ii] if spark.active)

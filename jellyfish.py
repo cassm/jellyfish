@@ -5,9 +5,7 @@ import sys
 import os
 cwd = os.getcwd()
 
-# sys.path.insert(0, cwd+"/openpixelcontrol/python/")
-sys.path.insert(0, "/home/pi/src/jellyfish/openpixelcontrol/python/")
-sys.path.insert(0, "/home/pi/src/jellyfish")
+sys.path.insert(0, cwd+"/openpixelcontrol/python/")
 
 import time
 import math
@@ -32,7 +30,6 @@ import color_utils
 import getopt
 import textwrap
 import sys
-from ola import OlaClient
 import select
 
 import threading
@@ -44,11 +41,13 @@ import pattern_utils
 import palette_utils
 from palette_utils import Palette
 
+import segments
 import spiral
 import sparkle
+import spangle
+import ripple
 import wash
 import warp
-import boot
 import rainbow_waves
 import wobbler
 import web
@@ -58,115 +57,52 @@ import palettes
 ##############################
 
 n_pixels_per_string = 50
-n_strings = 8
+n_strings = 16
 n_pixels = n_strings * n_pixels_per_string
-
-manual_palette = Palette(30000, [])
-
-last_manual_palette_sample = 0
 
 fps = 60
 
-last_measured_time = time.time()
-effective_time = time.time()
-
 pixels = [(0.0, 0.0, 0.0) for i in range(n_pixels)]
-current_rgb_setting = (0, 0, 0)
 
-speed_val = 1
-mode_id = 0
-last_mode_id = 0
-audio_level = 0.5
-audio_respond = False
-auto_colour = False
-colour_mash = False
-mode_cycle = False
-beats_since_last = 0
+command_input = []
+last_sparkle = 0
+warp_just_pressed = 0
+fade_state = 0
+fade_max = 0.9
+fade_level = fade_max
+segment_mix_level = 0.0
+ripple_mix_level = 0.0
+fade_down_step = 0.95
+fade_up_step = 1.012
+fade_threshold = 0.5
 
-def get_bit(byteval,idx):
-      return ((byteval&(1<<idx))!=0)
+mut = threading.Lock()
 
-def process_dmx_frame(data):
-    global speed_val
-    global mode_id
-    global audio_level
-    global audio_respond
-    global beats_since_last
-    global auto_colour
-    global colour_mash
-    global mode_cycle
-    global current_rgb_setting
+def input_worker():
+    global command_input
+    global fade_state
 
-    if len(data) != 8:
-        return
-
-    speed_val = data[0]/32.0
-    mode_id = data[1]
-    audio_level = data[2] / 255.0
-
-    beat_now = get_bit(data[3], 4)
-
-    if beat_now:
-        beats_since_last += 1
-
-    auto_colour = get_bit(data[3], 3)
-    colour_mash = get_bit(data[3], 2)
-    audio_respond = get_bit(data[3], 1)
-    mode_cycle = get_bit(data[3], 0)
-
-    current_rgb_setting = (data[4], data[5], data[6])
-
-update_manual_palette_called = False
-
-def update_manual_palette(current_time, value):
-    global manual_palette
-    global last_manual_palette_sample
-    global update_manual_palette_called
-
-    last_index = palette_utils.get_time_offset(last_manual_palette_sample, manual_palette.len)
-    new_index = palette_utils.get_time_offset(current_time, manual_palette.len)
-
-    if not update_manual_palette_called:
-        # first call
-
-        manual_palette.vals = list(value for i in range(manual_palette.len + 1))
-        last_manual_palette_sample = current_time
-        update_manual_palette_called = True
-
-    elif last_index == new_index:
-        # time has stopped
-        pass
-
-    else:
-        # time is moving forwards
-
-        if new_index < last_index:
-            for i in range(new_index, last_index+1):
-                manual_palette.vals[i] = value
-
-            last_manual_palette_sample = current_time
-
-        else:
-            # wrap case
-            for i in range(new_index, manual_palette.len+1):
-                manual_palette.vals[i] = value
-            for i in range(0, last_index):
-                manual_palette.vals[i] = value
-
-            last_manual_palette_sample = current_time
+    while True:
+        x = raw_input()
+        mut.acquire(True)
+        try:
+            command_input.append(x)
+        finally:
+            mut.release()
 
 def main():
     global pixels
-    global beats_since_last
-    global last_measured_time
-    global effective_time
-    global last_mode_id
-    global audio_level
+    global command_input
+    global fade_state
+    global fade_level
+    global segment_mix_level
+    global ripple_mix_level
+    global last_sparkle
+    global warp_just_pressed
 
     # handle command line
     parser = optparse.OptionParser()
-    parser.add_option('-l', '--layout', dest='layout',
-        default='/home/pi/src/jellyfish/layouts/disc-' + str(n_strings) + '.json',
+    parser.add_option('-l', '--layout', dest='layout', default='layouts/disc-' + str(n_strings) + '.json',
                       action='store', type='string',
                       help='layout file')
     parser.add_option('-s', '--server', dest='server', default='127.0.0.1:7890',
@@ -193,57 +129,86 @@ def main():
     print('')
 
     sparkle.init(n_pixels, time.time())
+    spangle.init(n_pixels, time.time())
     warp.init(n_strings)
     web.init(n_strings)
-    boot.init(n_strings)
 
-    time.sleep(20)
-
-    # show boot animation
-    while not boot.render(pixels, n_pixels_per_string, time.time(), palettes.auto):
-        client.put_pixels(pixels, channel=0)
-        time.sleep(1.0/fps)
-    print "Booted"
-
-    # initialise DMX slave listener
-    ola_client = OlaClient.OlaClient()
-    sock = ola_client.GetSocket()
-    ola_client.RegisterUniverse(1, ola_client.REGISTER, process_dmx_frame)
+    print('\tPolling input...')
+    input_t = threading.Thread(target=input_worker)
+    input_t.daemon = True
+    input_t.start()
 
     # send pixels
     print('\tsending pixels forever (control-c to exit)...\n')
 
     while True:
+        # process input
+        if mut.acquire(False):
+            try:
+                if len(command_input) > 0:
+                    print command_input
+                    for x in command_input:
+                        if "0" in x:
+                            print "sparkle"
+                            fade_state = 1
+                            last_sparkle = time.time()
+                        if "1" in x:
+                            print "warp"
+                            fade_state = 1
+                            warp_just_pressed = True
+                        if "2" in x:
+                            print "segments"
+                            segment_mix_level = 1.0
+                        if "3" in x:
+                            print "ripple"
+                            ripple_mix_level = 1.0
+
+                        print x
+
+                    command_input = []
+            finally:
+                mut.release()
+
+        if fade_state == 1:
+            fade_level *= fade_down_step
+            if fade_level < fade_threshold:
+                fade_level = fade_threshold
+                fade_state = 2
+
+        elif fade_state == 2:
+            fade_level *= fade_up_step
+            if fade_level >= fade_max:
+                fade_level = fade_max
+                fade_state = 0
+
+        segment_mix_level *= 0.992
+        ripple_mix_level *= 0.992
+
         frame_start = time.time()
 
-        # update effective time in line with speed value
-        effective_time += (time.time() - last_measured_time) * speed_val
-        last_measured_time = time.time()
+        current_palette = palettes.auto
 
-        # check for new dmx frames
-        readable, writable, exceptional = select.select([sock], [], [], 0)
-        while readable:
-            ola_client.SocketReady()
-            readable, writable, exceptional = select.select([sock], [], [], 0)
+        spangle.set_pixels(pixels, n_pixels_per_string, 0.0005, 1, 0.9999, time.time(), current_palette, 1.0, False, False, fade_level)
 
-        update_manual_palette(effective_time, current_rgb_setting)
+        segments.set_pixels(pixels, n_pixels_per_string, time.time(), current_palette, 1.0, False, False, segment_mix_level)
 
-        if last_mode_id != mode_id:
-            print "Mode switch {} -> {}".format(last_mode_id, mode_id)
-            last_mode_id = mode_id
+        # wash.set_pixels(pixels, n_pixels_per_string, time.time(), current_palette, 1.0, False, False, 0.6)
+        ripple.set_pixels(pixels, n_pixels_per_string, time.time(), current_palette, ripple_mix_level)
 
-        current_palette = manual_palette
+        sparkle_chance = (1.0/(((time.time() - last_sparkle)*2)**2)) * 3
+        if sparkle_chance < 0.1:
+            sparkle_chance = 0
 
-        if auto_colour:
-          current_palette = palettes.auto
+        # sparkle_chance = (max((1.0 - (time.time() - last_sparkle)**2), 0))
 
-        if mode_id == 0:
-            wash.set_pixels(pixels, n_pixels_per_string, effective_time, current_palette, audio_level, audio_respond, colour_mash)
+        sparkle.set_pixels(pixels, n_pixels_per_string, sparkle_chance, 10,
+            time.time(), current_palette, 1.0, False, False, True)
 
-        elif mode_id == 1:
-            sparkle.set_pixels(pixels, n_pixels_per_string, 0.5, 5,
-                effective_time, current_palette, audio_level, audio_respond, colour_mash)
+        warp.set_pixels(pixels, n_pixels_per_string, 0, 0,
+            time.time(), current_palette, False, False, False, True, warp_just_pressed)
+        warp_just_pressed = False
 
+        '''
         elif mode_id == 2:
             spiral.set_pixels(pixels, n_pixels_per_string, n_strings, 2, True,
                 effective_time, current_palette, audio_level, audio_respond, colour_mash)
@@ -260,19 +225,15 @@ def main():
             wobbler.set_pixels(pixels, n_pixels_per_string, effective_time,
                 current_palette, beats_since_last > 0, audio_level, audio_respond, colour_mash)
 
-        elif mode_id == 6:
-            warp.set_pixels(pixels, n_pixels_per_string, 0.0625, 2,
-                effective_time, current_palette, beats_since_last > 0, audio_respond, colour_mash)
 
         elif mode_id == 7:
             web.set_pixels(pixels, n_pixels_per_string, effective_time, current_palette, audio_level, audio_respond, colour_mash)
+        '''
 
         client.put_pixels(pixels, channel=0)
 
         frame_duration = time.time() - frame_start
         frame_delay = 1.0 / fps
-
-        beats_since_last = 0
 
         if frame_delay > frame_duration:
           time.sleep(frame_delay - frame_duration)
