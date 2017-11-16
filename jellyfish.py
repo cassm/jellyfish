@@ -186,7 +186,7 @@ def main():
 
         frame_start = time.time()
 
-        current_palette = palettes.auto
+        current_palette = palettes.rainbow
 
         spangle.set_pixels(pixels, n_pixels_per_string, 0.0005, 1, 0.9999, time.time(), current_palette, 1.0, False, False, fade_level)
 
